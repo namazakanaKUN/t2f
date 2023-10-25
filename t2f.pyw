@@ -70,7 +70,6 @@ def foreground_off(hwnd, title):
 window = tk.Tk()
 window.title("time2frame")
 window.geometry("200x170")
-window.iconbitmap("icon.ico")
 
 time_label = tk.Label(window, text="時間（分:秒または秒）を入力してください:")
 time_label.pack()
