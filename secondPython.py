@@ -1,63 +1,95 @@
-#time to frame convert app
 import tkinter as tk
-import math as m
-frameList = []
+import pyperclip
+import win32gui
+import win32con
+import re
+
+window_on_top = False
+
+def time2frame(time_str):
+    frame = 30
+    try:
+        time_str = re.sub(r'[：:]', ':', time_str)
+        
+        if ":" in time_str:
+            minutes, seconds = map(int, time_str.split(":"))
+            frame_count = (minutes * 60 + seconds) * frame
+        else:
+            seconds = int(time_str)
+            frame_count = seconds * frame
+        return round(frame_count)
+    except ValueError:
+        return None
+
+def process_input():
+    time_str = entry_time.get()
+    frame_count = time2frame(time_str)
+    
+    if frame_count is not None:
+        result_label.config(text=f"フレーム数: {frame_count}")
+    else:
+        result_label.config(text="有効な時間形式（分:秒または秒）を入力してください")
+
+def clear_input():
+    entry_time.delete(0, tk.END)
+
+def copy_to_clipboard():
+    time_str = entry_time.get()
+    frame_count = time2frame(time_str)
+    if frame_count is not None:
+        pyperclip.copy(frame_count)
+        copy_button.config(text="コピー完了！")
+        result_label.config(text=f"フレーム数: {frame_count}")
+    else:
+        copy_button.config(text="コピー")
+        result_label.config(text="有効な時間形式（分:秒または秒）を入力してください")
+
+def toggle_on_top():
+    global window_on_top
+    title = window.title()
+    if window_on_top:
+        win32gui.EnumWindows(foreground_off, title)
+        window_on_top = False
+        toggle_on_top_button.config(text="最前面に表示")
+    else:
+        win32gui.EnumWindows(foreground_on, title)
+        window_on_top = True
+        toggle_on_top_button.config(text="最前面表示を解除")
+
+def foreground_on(hwnd, title):
+    name = win32gui.GetWindowText(hwnd)
+    if name.find(title) >= 0:
+        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+        return
+
+def foreground_off(hwnd, title):
+    name = win32gui.GetWindowText(hwnd)
+    if name.find(title) >= 0:
+        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
 
 window = tk.Tk()
-window.geometry("500x500")
-window.title("Time to Frame")
-explaintText = tk.Label(text=("This app is convertion Time to Frame"), width=40, height=5)
-explaintText.pack()
+window.title("time2frame")
+window.geometry("200x170")
+window.iconbitmap("icon.ico")
 
-def showFrameAndTimeList(FPS,Minute,Second):
-    frameSet = set(frameList)
-    print("----- Frame and time list -----")
-    for elements in frameSet:
-        print(elements + "   " + FPS +"FPS " + Minute + "分" + Second + "秒")
+time_label = tk.Label(window, text="時間（分:秒または秒）を入力してください:")
+time_label.pack()
+entry_time = tk.Entry(window)
+entry_time.pack()
 
-def showList():
-    frameSet = set(frameList)
-    print("----- Frame list -----")
-    for elements in frameSet:
-        print(elements)
+convert_button = tk.Button(window, text="変換", command=process_input)
+convert_button.pack()
 
-def showResult(result):
-    resultText = tk.Label(text=result, name="resultText")
-    resultText.pack_forget()
-    resultText.pack()
+clear_button = tk.Button(window, text="クリア", command=clear_input)
+clear_button.pack()
 
-def timeCalc(minute,second,FPS):
-    totalSecond = int(minute)*60 + int(second)
-    Frame = int(totalSecond) * int(FPS)
-    result = str(Frame) + "Farme"
-    showResult(result)
-    frameList.append(result)
+result_label = tk.Label(window, text="")
+result_label.pack()
 
+copy_button = tk.Button(window, text="コピー", command=copy_to_clipboard)
+copy_button.pack()
 
-def main():
-    showListButton = tk.Button(text="Show frame list",command=lambda: showList())
-    showFrameListButton = tk.Button(text="Show frame and time", command=lambda: showFrameAndTimeList(entryFPS.get(),entryMinute.get(), entrySecond.get()))
+toggle_on_top_button = tk.Button(window, text="最前面に表示", command=toggle_on_top)
+toggle_on_top_button.pack()
 
-    text1 = tk.Label(text="Input the FPS")
-    entryFPS = tk.Entry()
-
-    text2 = tk.Label(text="Input the minute")
-    entryMinute = tk.Entry()
-
-    text3 = tk.Label(text="Input the second")
-    entrySecond = tk.Entry()
-
-    convertButton = tk.Button(text="Start convert", command=lambda: timeCalc(entryMinute.get(), entrySecond.get(), entryFPS.get()))
-    
-    
-    showListButton.pack()
-    showFrameListButton.pack()
-    text1.pack()
-    entryFPS.pack()
-    text2.pack()
-    entryMinute.pack()
-    text3.pack()
-    entrySecond.pack()
-    convertButton.pack()
-    window.mainloop()
-main()
+window.mainloop()
