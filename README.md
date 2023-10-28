@@ -1,6 +1,7 @@
 # t2f
 time to frameです。
-<br>Tkinterで試作的に作ったプログラムです
+<br>Tkinterで試作的に作ったプログラムです。
+<br>pythonとpyperclip,pywin32で動きます。
 <br>時間を入力すると既定のフレーム数を基数としたフレーム数が返ってきます。
 <br>正規化しているので半角文字も対応しています。
 <br><h1>使い方</h1>
